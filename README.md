@@ -349,6 +349,8 @@ python manage.py seed --students 40 --tutors 4
 
 ## 📝 Litsenziya va muallif
 
-✏️ **Muallif:** Latifbek Bahronov
+✏️ **Muallif:** Jo'rayev Umid
+📧 umidjorayev091@gmail.com
+💻 GitHub: [Umid091](https://github.com/Umid091)
 🎓 Oliy ta'lim muassasalari uchun ishlab chiqilgan
-📅 © {YEAR} Talaba Moduli — barcha huquqlar himoyalangan
+📅 © 2026 Talaba Moduli — barcha huquqlar himoyalangan
