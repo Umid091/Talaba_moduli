@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Tyutorni biriktirish{% endblock %}
+{% block breadcrumb %}Bosh sahifa › Foydalanuvchilar › Biriktirish{% endblock %}
+
+{% block extra_head %}
+<style>
+    .multi-select {
+        background: #fff !important;
+        max-height: 180px;
+        overflow-y: auto;
+    }
+    .multi-select option { padding: 6px 10px; }
+    .multi-select option:checked { background: var(--navy-50) !important; color: var(--primary); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-title"><span class="ico">🎯</span> {{ tutor_user.get_full_name|default:tutor_user.username }} — biriktirish</div>
+    <p style="color:var(--text-muted);margin-bottom:18px;font-size:.9rem">
+        Tyutor faqat o'ziga biriktirilgan fakultet/guruhdagi talabalarni ko'ra oladi. Bir nechta variantni tanlash uchun <strong>Ctrl</strong> tugmasini bosib turing.
+    </p>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="row">
+            <div class="col">
+                <div class="form-group">
+                    <label>🎓 Fakultetlar</label>
+                    <select name="faculties" multiple class="form-input multi-select" size="6">
+                        {% for f in faculties %}
+                            <option value="{{ f.id }}" {% if f in profile.faculties.all %}selected{% endif %}>{{ f.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="form-help">Tanlangan fakultetdagi BARCHA talabalarni ko'ra oladi</div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="form-group">
+                    <label>📚 Guruhlar</label>
+                    <select name="groups" multiple class="form-input multi-select" size="8">
+                        {% for g in groups %}
+                            <option value="{{ g.id }}" {% if g in profile.groups.all %}selected{% endif %}>{{ g }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="form-help">Aniq guruhlarga biriktirish</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>📝 Izoh</label>
+            <textarea name="note" class="form-input" rows="3" placeholder="Ixtiyoriy izoh...">{{ profile.note }}</textarea>
+        </div>
+
+        <div class="btn-row">
+            <button type="submit" class="btn btn-primary">💾 Saqlash</button>
+            <a href="{% url 'dashboard:users_list' %}" class="btn btn-secondary">← Bekor qilish</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

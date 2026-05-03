@@ -1,0 +1,144 @@
+{% load static %}<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Talaba Moduli — Oliy ta'lim muassasasi{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%230a1f44'/%3E%3Ctext x='12' y='17' text-anchor='middle' font-size='14' font-weight='800' fill='%23d4a017' font-family='Inter, Arial'%3ETM%3C/text%3E%3C/svg%3E">
+    {% if user.is_authenticated %}
+    <script>window.DISTRICTS_API_URL = '{% url "students:districts_by_region" %}';</script>
+    {% endif %}
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+{% if user.is_authenticated %}
+<div class="layout">
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <aside class="sidebar" id="sidebar">
+        <div class="brand">
+            <div class="brand-logo">TM</div>
+            <div>
+                <div class="brand-name">Talaba Moduli</div>
+                <div class="brand-sub">Oliy ta'lim tizimi</div>
+            </div>
+        </div>
+
+        <div class="nav-section">Asosiy</div>
+        <a href="{% url 'dashboard:home' %}" class="nav-link {% if request.resolver_match.view_name == 'dashboard:home' or request.resolver_match.view_name == 'dashboard:admin_home' or request.resolver_match.view_name == 'students:dashboard' or request.resolver_match.view_name == 'tutors:dashboard' %}active{% endif %}">
+            <span class="ico">🏠</span> Bosh sahifa
+        </a>
+
+        {% if role_student %}
+            <a href="{% url 'students:profile_edit' %}" class="nav-link {% if request.resolver_match.view_name == 'students:profile_edit' %}active{% endif %}">
+                <span class="ico">✏️</span> Profilni tahrirlash
+            </a>
+            <a href="{% url 'students:rental_edit' %}" class="nav-link {% if request.resolver_match.view_name == 'students:rental_edit' %}active{% endif %}">
+                <span class="ico">🏘️</span> Ijara ma'lumotlari
+            </a>
+        {% endif %}
+
+        {% if role_tutor %}
+            <a href="{% url 'tutors:dashboard' %}?debt=yes" class="nav-link">
+                <span class="ico">⚠️</span> Qarzdor talabalar
+            </a>
+        {% endif %}
+
+        {% if role_admin %}
+            <div class="nav-section">Boshqaruv</div>
+            <a href="{% url 'dashboard:users_list' %}" class="nav-link {% if 'users' in request.path %}active{% endif %}">
+                <span class="ico">👥</span> Foydalanuvchilar
+            </a>
+            <a href="{% url 'dashboard:faculty_list' %}" class="nav-link {% if 'facult' in request.path %}active{% endif %}">
+                <span class="ico">🎓</span> Fakultetlar
+            </a>
+            <a href="{% url 'dashboard:group_list' %}" class="nav-link {% if 'group' in request.path %}active{% endif %}">
+                <span class="ico">📚</span> Guruhlar
+            </a>
+            <a href="{% url 'dashboard:region_list' %}" class="nav-link {% if 'region' in request.path or 'district' in request.path %}active{% endif %}">
+                <span class="ico">🌍</span> Hududlar
+            </a>
+            <a href="{% url 'dashboard:export_students' %}" class="nav-link">
+                <span class="ico">📥</span> CSV eksport
+            </a>
+            <a href="/admin/" class="nav-link" target="_blank">
+                <span class="ico">⚙️</span> Django admin
+            </a>
+        {% endif %}
+
+        <div class="nav-section">Hisob</div>
+        <a href="{% url 'accounts:profile' %}" class="nav-link {% if request.resolver_match.view_name == 'accounts:profile' %}active{% endif %}">
+            <span class="ico">👤</span> Mening hisobim
+        </a>
+        <a href="{% url 'accounts:password_change' %}" class="nav-link {% if request.resolver_match.view_name == 'accounts:password_change' %}active{% endif %}">
+            <span class="ico">🔑</span> Parolni o'zgartirish
+        </a>
+        <a href="{% url 'accounts:logout' %}" class="nav-link">
+            <span class="ico">🚪</span> Chiqish
+        </a>
+
+        <div class="sidebar-footer">
+            © {% now "Y" %} Talaba Moduli<br>
+            v1.1.0
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <div style="display:flex;align-items:center;gap:14px;flex:1">
+                <button class="menu-btn" id="menuBtn" aria-label="Menyu">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+                </button>
+                <div>
+                    <h1>{% block page_title %}{% endblock %}</h1>
+                    <div class="breadcrumbs">{% block breadcrumb %}{% endblock %}</div>
+                </div>
+            </div>
+            <div class="user-chip">
+                <div class="avatar">
+                    {% if user.avatar %}
+                        <img src="{{ user.avatar.url }}" alt="">
+                    {% else %}
+                        {{ user.first_name|slice:":1"|default:user.username|slice:":1"|upper }}
+                    {% endif %}
+                </div>
+                <div>
+                    <div class="name">{{ user.get_full_name|default:user.username }}</div>
+                    <div class="role">{{ user.get_role_display }}</div>
+                </div>
+            </div>
+        </header>
+
+        <div class="container">
+            {% if messages %}
+            <div class="alerts">
+                {% for message in messages %}
+                    <div class="alert {{ message.tags }}">
+                        <span>
+                        {% if message.tags == 'success' %}✓
+                        {% elif message.tags == 'danger' %}✕
+                        {% elif message.tags == 'warning' %}⚠
+                        {% else %}ℹ{% endif %}
+                        </span>
+                        <span style="flex:1">{{ message }}</span>
+                        <button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;color:inherit;opacity:.6;font-size:1.1rem">×</button>
+                    </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+</div>
+<script src="{% static 'js/app.js' %}"></script>
+{% else %}
+    {% block guest_content %}{% endblock %}
+{% endif %}
+
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>

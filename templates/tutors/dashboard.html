@@ -1,0 +1,223 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Mening talabalarim{% endblock %}
+{% block breadcrumb %}Bosh sahifa › Tyutor paneli{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="profile-hero">
+    <div class="head">
+        <div class="avatar">{{ tutor.user.first_name|slice:":1"|default:tutor.user.username|slice:":1"|upper }}</div>
+        <div>
+            <h2>{{ tutor.user.get_full_name|default:tutor.user.username }}</h2>
+            <div class="meta">
+                Tyutor ·
+                {% for f in tutor.faculties.all %}{{ f.short_name|default:f.name }}{% if not forloop.last %}, {% endif %}{% empty %}Fakultet biriktirilmagan{% endfor %}
+                · {{ tutor.groups.count }} ta guruh
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="top"><div class="icon">👥</div></div>
+        <div class="value">{{ stats.total }}</div>
+        <div class="label">Jami talabalar</div>
+        <div class="sub">sizga biriktirilgan</div>
+    </div>
+    <div class="stat-card warning">
+        <div class="top"><div class="icon">🏘️</div></div>
+        <div class="value">{{ stats.rent }}</div>
+        <div class="label">Ijarada</div>
+        {% if stats.total %}<div class="sub">{% widthratio stats.rent stats.total 100 %}% talabalar</div>{% endif %}
+    </div>
+    <div class="stat-card info">
+        <div class="top"><div class="icon">🏨</div></div>
+        <div class="value">{{ stats.dormitory }}</div>
+        <div class="label">Yotoqxonada</div>
+        {% if stats.total %}<div class="sub">{% widthratio stats.dormitory stats.total 100 %}% talabalar</div>{% endif %}
+    </div>
+    <div class="stat-card success">
+        <div class="top"><div class="icon">🏠</div></div>
+        <div class="value">{{ stats.home }}</div>
+        <div class="label">O'z uyida</div>
+        {% if stats.total %}<div class="sub">{% widthratio stats.home stats.total 100 %}% talabalar</div>{% endif %}
+    </div>
+    <div class="stat-card danger">
+        <div class="top"><div class="icon">💸</div></div>
+        <div class="value">{{ stats.debtors }}</div>
+        <div class="label">Qarzdorlar</div>
+        <div class="sub">to'lov qilmaganlar</div>
+    </div>
+</div>
+
+{% if stats.total > 0 %}
+<div class="row">
+    <div class="col">
+        <div class="card">
+            <div class="card-title"><span class="ico">🏠</span> Yashash turi taqsimoti</div>
+            <div class="chart-wrap"><canvas id="housingChart"></canvas></div>
+        </div>
+    </div>
+    {% if region_stats %}
+    <div class="col">
+        <div class="card">
+            <div class="card-title"><span class="ico">📍</span> Hududlar bo'yicha (ijara)</div>
+            <div class="chart-wrap"><canvas id="regionChart"></canvas></div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- Needs attention -->
+{% if debtors or incomplete %}
+<div class="row">
+    {% if debtors %}
+    <div class="col">
+        <div class="card" style="border-left:4px solid var(--danger)">
+            <div class="card-title">
+                <span class="ico" style="background:var(--danger-bg);color:var(--danger)">⚠️</span>
+                Qarzdor talabalar
+                <span class="badge badge-danger" style="margin-left:auto">{{ stats.debtors }}</span>
+            </div>
+            {% for s in debtors %}
+                <div class="list-item">
+                    <div class="avatar">{{ s.user.first_name|slice:":1"|default:s.user.username|slice:":1"|upper }}</div>
+                    <div class="info">
+                        <div class="name">{{ s.full_name }}</div>
+                        <div class="sub">{{ s.group|default:"—" }} · {{ s.rental.region|default:"—" }} · {{ s.rental.monthly_price|floatformat:0 }} so'm/oy</div>
+                    </div>
+                    <a href="{% url 'tutors:student_detail' s.id %}" class="btn btn-secondary btn-sm">👁</a>
+                </div>
+            {% endfor %}
+            {% if stats.debtors > 6 %}
+                <div style="text-align:center;margin-top:10px">
+                    <a href="?debt=yes" class="btn btn-outline btn-sm">Barchasi ({{ stats.debtors }} ta) →</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+    {% if incomplete %}
+    <div class="col">
+        <div class="card" style="border-left:4px solid var(--warning)">
+            <div class="card-title">
+                <span class="ico" style="background:var(--warning-bg);color:var(--warning)">📝</span>
+                Profili to'liq emas
+                <span class="badge badge-warning" style="margin-left:auto">{{ incomplete|length }}</span>
+            </div>
+            {% for s in incomplete %}
+                <div class="list-item">
+                    <div class="avatar">{{ s.user.first_name|slice:":1"|default:s.user.username|slice:":1"|upper }}</div>
+                    <div class="info">
+                        <div class="name">{{ s.full_name }}</div>
+                        <div class="sub">{{ s.group|default:"Guruh kiritilmagan" }} · {{ s.user.phone|default:"telefon yo'q" }}</div>
+                    </div>
+                    <a href="{% url 'tutors:student_detail' s.id %}" class="btn btn-secondary btn-sm">👁</a>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+{% if region_stats %}
+<div class="card">
+    <div class="card-title"><span class="ico">📊</span> Hududlar bo'yicha tafsilotlar</div>
+    <div class="table-wrap" style="border:none">
+        <table class="data-table">
+            <thead>
+                <tr><th>Hudud</th><th>Talabalar soni</th><th>Umumiy ijara</th></tr>
+            </thead>
+            <tbody>
+                {% for r in region_stats %}
+                <tr>
+                    <td><strong>{{ r.rental__region__name }}</strong></td>
+                    <td><span class="badge badge-primary">{{ r.count }} ta</span></td>
+                    <td>{{ r.total_price|floatformat:0 }} so'm</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<div class="section-header" style="margin-top:24px">
+    <div>
+        <h2>👥 Talabalar ro'yxati</h2>
+        <div class="subtitle">{{ total_filtered }} ta natija</div>
+    </div>
+</div>
+
+{% include 'tutors/_filter_bar.html' %}
+{% include 'tutors/_students_table.html' %}
+
+{% if students.has_other_pages %}
+<div class="pagination">
+    {% if students.has_previous %}<a href="?{% for k,v in request.GET.items %}{% if k != 'page' %}{{ k }}={{ v }}&{% endif %}{% endfor %}page={{ students.previous_page_number }}">‹</a>{% endif %}
+    {% for num in students.paginator.page_range %}
+        {% if num == students.number %}<span class="active">{{ num }}</span>
+        {% elif num > students.number|add:'-3' and num < students.number|add:'3' %}<a href="?{% for k,v in request.GET.items %}{% if k != 'page' %}{{ k }}={{ v }}&{% endif %}{% endfor %}page={{ num }}">{{ num }}</a>{% endif %}
+    {% endfor %}
+    {% if students.has_next %}<a href="?{% for k,v in request.GET.items %}{% if k != 'page' %}{{ k }}={{ v }}&{% endif %}{% endfor %}page={{ students.next_page_number }}">›</a>{% endif %}
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+{% if stats.total > 0 %}
+<script>
+const cd = {{ chart_data_json|safe }};
+Chart.defaults.font.family = 'Inter, sans-serif';
+Chart.defaults.color = '#64748b';
+const total = cd.housing.data.reduce((a,b)=>a+b, 0);
+
+new Chart(document.getElementById('housingChart'), {
+    type: 'doughnut',
+    data: {
+        labels: cd.housing.labels,
+        datasets: [{ data: cd.housing.data, backgroundColor: cd.housing.colors, borderWidth: 0, hoverOffset: 8 }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false, cutout: '60%',
+        plugins: {
+            legend: { position: 'bottom', labels: { padding: 14, boxWidth: 14 } },
+            tooltip: {
+                backgroundColor: '#0a1f44',
+                padding: 12,
+                callbacks: {
+                    label: (ctx) => {
+                        const v = ctx.parsed;
+                        const pct = total ? Math.round(v * 100 / total) : 0;
+                        return `${ctx.label}: ${v} ta (${pct}%)`;
+                    }
+                }
+            }
+        }
+    }
+});
+
+{% if region_stats %}
+new Chart(document.getElementById('regionChart'), {
+    type: 'bar',
+    data: {
+        labels: cd.regions.labels,
+        datasets: [{ label: 'Talabalar', data: cd.regions.data, backgroundColor: '#1a3d75', borderRadius: 6, hoverBackgroundColor: '#244d8e' }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { backgroundColor: '#0a1f44', padding: 10, callbacks: { label: (c) => `${c.parsed.y} ta talaba` } } },
+        scales: { y: { ticks: { precision: 0 }, beginAtZero: true } }
+    }
+});
+{% endif %}
+</script>
+{% endif %}
+{% endblock %}

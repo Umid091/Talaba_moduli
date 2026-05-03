@@ -1,0 +1,68 @@
+{# Renders student list. Expects: students #}
+<div class="table-wrap">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th style="width:50px">#</th>
+                <th>Talaba</th>
+                <th>Telefon</th>
+                <th>Fakultet / Guruh</th>
+                <th>Yashash</th>
+                <th>Hudud</th>
+                <th>To'lov holati</th>
+                <th style="width:90px"></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in students %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>
+                    <div class="user-cell">
+                        <div class="avatar">{{ s.user.first_name|slice:":1"|default:s.user.username|slice:":1"|upper }}</div>
+                        <div>
+                            <div class="name">{{ s.full_name }}</div>
+                            <div class="sub">@{{ s.user.username }}</div>
+                        </div>
+                    </div>
+                </td>
+                <td>{{ s.user.phone|default:"—" }}</td>
+                <td>
+                    <strong>{{ s.faculty.short_name|default:s.faculty|default:"—" }}</strong>
+                    <div class="sub" style="color:var(--text-muted);font-size:.78rem">{{ s.group|default:"—" }} · {{ s.course }}-kurs</div>
+                </td>
+                <td>
+                    {% if s.housing_type == 'rent' %}<span class="badge badge-warning">🏘️ Ijarada</span>
+                    {% elif s.housing_type == 'dormitory' %}<span class="badge badge-info">🏨 Yotoqxonada</span>
+                    {% else %}<span class="badge badge-success">🏠 Uyida</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if s.housing_type == 'rent' and s.rental %}
+                        <strong>{{ s.rental.region|default:"—" }}</strong>
+                        <div style="color:var(--text-muted);font-size:.78rem">{{ s.rental.district|default:"" }}</div>
+                    {% else %}
+                        {{ s.home_region|default:"—" }}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if s.housing_type == 'rent' %}
+                        {% if s.rental and s.rental.is_paid %}
+                            <span class="badge badge-success">✓ To'langan</span>
+                        {% else %}
+                            <span class="badge badge-danger">✕ Qarzdor</span>
+                        {% endif %}
+                    {% else %}
+                        <span class="badge">—</span>
+                    {% endif %}
+                </td>
+                <td class="actions">
+                    <a href="{% url 'tutors:student_detail' s.id %}" class="btn btn-secondary btn-sm">👁 Ko'rish</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="8" class="empty"><span class="ico">🔎</span>Filterga mos talaba topilmadi.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

@@ -1,0 +1,368 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Boshqaruv paneli{% endblock %}
+{% block breadcrumb %}Bosh sahifa › Statistika va tahlil{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="top">
+            <div class="icon">👥</div>
+            <span class="badge badge-primary">Jami</span>
+        </div>
+        <div class="value">{{ stats.total_students }}</div>
+        <div class="label">Talabalar</div>
+        <div class="sub">{{ stats.total_tutors }} tyutor · {{ stats.total_admins }} admin</div>
+    </div>
+
+    <div class="stat-card warning">
+        <div class="top"><div class="icon">🏘️</div></div>
+        <div class="value">{{ stats.rent }}</div>
+        <div class="label">Ijarada yashovchi</div>
+        {% if stats.total_students %}<div class="sub">{% widthratio stats.rent stats.total_students 100 %}% talabalar</div>{% endif %}
+    </div>
+
+    <div class="stat-card info">
+        <div class="top"><div class="icon">🏨</div></div>
+        <div class="value">{{ stats.dormitory }}</div>
+        <div class="label">Yotoqxonada</div>
+        {% if stats.total_students %}<div class="sub">{% widthratio stats.dormitory stats.total_students 100 %}% talabalar</div>{% endif %}
+    </div>
+
+    <div class="stat-card success">
+        <div class="top"><div class="icon">🏠</div></div>
+        <div class="value">{{ stats.home }}</div>
+        <div class="label">O'z uyida</div>
+        {% if stats.total_students %}<div class="sub">{% widthratio stats.home stats.total_students 100 %}% talabalar</div>{% endif %}
+    </div>
+
+    <div class="stat-card danger">
+        <div class="top"><div class="icon">💸</div></div>
+        <div class="value">{{ stats.debtors }}</div>
+        <div class="label">Qarzdorlar</div>
+        <div class="sub">to'lov qilmaganlar</div>
+    </div>
+
+    <div class="stat-card success">
+        <div class="top"><div class="icon">💰</div></div>
+        <div class="value">{{ stats.collected_money|floatformat:0 }}</div>
+        <div class="label">To'plangan summa (so'm)</div>
+        <div class="sub">jami: {{ stats.total_rent_money|floatformat:0 }} so'm</div>
+    </div>
+
+    <div class="stat-card accent">
+        <div class="top"><div class="icon">🎓</div></div>
+        <div class="value">{{ stats.faculties }}</div>
+        <div class="label">Fakultetlar</div>
+        <div class="sub">{{ stats.groups }} ta guruh</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="top"><div class="icon">🌍</div></div>
+        <div class="value">{{ stats.regions }}</div>
+        <div class="label">Hududlar</div>
+        <div class="sub">talabalar geografiyasi</div>
+    </div>
+</div>
+
+<!-- Charts row 1 -->
+<div class="row">
+    <div class="col" style="flex:2;min-width:520px">
+        <div class="card">
+            <div class="card-title">
+                <span class="ico">📊</span> Hududlar bo'yicha talabalar (ijara)
+                <span class="badge badge-info" style="margin-left:auto">Top 8</span>
+            </div>
+            <div class="chart-wrap lg"><canvas id="regionChart"></canvas></div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card">
+            <div class="card-title"><span class="ico">🏠</span> Yashash turi</div>
+            <div class="chart-wrap"><canvas id="housingChart"></canvas></div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts row 2 -->
+<div class="row">
+    <div class="col">
+        <div class="card">
+            <div class="card-title"><span class="ico">🎓</span> Fakultetlar bo'yicha</div>
+            <div class="chart-wrap"><canvas id="facultyChart"></canvas></div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card">
+            <div class="card-title"><span class="ico">📚</span> Kurslar bo'yicha</div>
+            <div class="chart-wrap"><canvas id="courseChart"></canvas></div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card">
+            <div class="card-title"><span class="ico">💳</span> To'lov holati</div>
+            <div class="chart-wrap"><canvas id="paymentChart"></canvas></div>
+        </div>
+    </div>
+</div>
+
+<!-- Activity widgets -->
+<div class="row">
+    <div class="col">
+        <div class="card">
+            <div class="card-title"><span class="ico">🕒</span> So'nggi qo'shilgan talabalar</div>
+            {% for s in recent_students %}
+                <div class="list-item">
+                    <div class="avatar">{{ s.user.first_name|slice:":1"|default:s.user.username|slice:":1"|upper }}</div>
+                    <div class="info">
+                        <div class="name">{{ s.full_name }}</div>
+                        <div class="sub">{{ s.faculty.short_name|default:"—" }} · {{ s.group|default:"—" }} · {{ s.created_at|date:"d.m.Y" }}</div>
+                    </div>
+                    <a href="{% url 'tutors:student_detail' s.id %}" class="btn btn-secondary btn-sm">👁</a>
+                </div>
+            {% empty %}
+                <div class="empty"><span class="ico">👥</span>Hali talabalar yo'q</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="col">
+        <div class="card" style="border-left:4px solid var(--danger)">
+            <div class="card-title">
+                <span class="ico" style="background:var(--danger-bg);color:var(--danger)">⚠️</span>
+                Diqqat: Qarzdor talabalar
+                <span class="badge badge-danger" style="margin-left:auto">{{ stats.debtors }}</span>
+            </div>
+            {% for s in debtors_list %}
+                <div class="list-item">
+                    <div class="avatar">{{ s.user.first_name|slice:":1"|default:s.user.username|slice:":1"|upper }}</div>
+                    <div class="info">
+                        <div class="name">{{ s.full_name }}</div>
+                        <div class="sub">{{ s.group|default:"—" }} · {{ s.rental.region|default:"—" }} · {{ s.rental.monthly_price|floatformat:0 }} so'm</div>
+                    </div>
+                    <a href="{% url 'tutors:student_detail' s.id %}" class="btn btn-danger btn-sm">👁</a>
+                </div>
+            {% empty %}
+                <div class="empty"><span class="ico">✓</span>Qarzdorlar yo'q!</div>
+            {% endfor %}
+            {% if stats.debtors > 8 %}
+                <div style="text-align:center;margin-top:10px">
+                    <a href="?debt=yes&housing=rent" class="btn btn-outline btn-sm">Barchasi ({{ stats.debtors }} ta) →</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="col" style="max-width:300px">
+        <div class="card">
+            <div class="card-title"><span class="ico">⚡</span> Tezkor amallar</div>
+            <div class="quick-links">
+                <a href="{% url 'dashboard:user_create' %}"><span class="ico">➕</span><span>Foydalanuvchi qo'shish</span></a>
+                <a href="{% url 'dashboard:faculty_create' %}"><span class="ico">🎓</span><span>Fakultet qo'shish</span></a>
+                <a href="{% url 'dashboard:group_create' %}"><span class="ico">📚</span><span>Guruh qo'shish</span></a>
+                <a href="{% url 'dashboard:region_create' %}"><span class="ico">🌍</span><span>Hudud qo'shish</span></a>
+                <a href="{% url 'dashboard:district_create' %}"><span class="ico">📌</span><span>Tuman qo'shish</span></a>
+                <a href="{% url 'dashboard:export_students' %}"><span class="ico">📥</span><span>CSV ga eksport</span></a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Region details -->
+<div class="card">
+    <div class="card-title"><span class="ico">📍</span> Hududlar bo'yicha ijara taqsimoti</div>
+    <div class="table-wrap" style="border:none">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Hudud</th>
+                    <th>Ijaradagilar</th>
+                    <th>To'langan</th>
+                    <th>Qarzdor</th>
+                    <th>Umumiy summa</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in region_stats %}
+                <tr>
+                    <td><strong>{{ r.region__name }}</strong></td>
+                    <td><span class="badge badge-primary">{{ r.count }} ta</span></td>
+                    <td><span class="badge badge-success">{{ r.paid_count }}</span></td>
+                    <td><span class="badge badge-danger">{{ r.debt_count }}</span></td>
+                    <td>{{ r.total_price|floatformat:0 }} so'm</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="empty"><span class="ico">📭</span>Ijara ma'lumotlari hali kiritilmagan</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Filter section -->
+<div class="section-header" style="margin-top:24px">
+    <div>
+        <h2>🔍 Talabalar ro'yxati</h2>
+        <div class="subtitle">Jami {{ total_filtered }} ta natija</div>
+    </div>
+    <a href="{% url 'dashboard:export_students' %}?{{ request.GET.urlencode }}" class="btn btn-outline btn-sm">📥 CSV eksport</a>
+</div>
+
+{% include 'tutors/_filter_bar.html' %}
+{% include 'tutors/_students_table.html' %}
+
+{% if students.has_other_pages %}
+<div class="pagination">
+    {% if students.has_previous %}<a href="?{% for k,v in request.GET.items %}{% if k != 'page' %}{{ k }}={{ v }}&{% endif %}{% endfor %}page={{ students.previous_page_number }}">‹</a>{% endif %}
+    {% for num in students.paginator.page_range %}
+        {% if num == students.number %}<span class="active">{{ num }}</span>
+        {% elif num > students.number|add:'-3' and num < students.number|add:'3' %}<a href="?{% for k,v in request.GET.items %}{% if k != 'page' %}{{ k }}={{ v }}&{% endif %}{% endfor %}page={{ num }}">{{ num }}</a>{% endif %}
+    {% endfor %}
+    {% if students.has_next %}<a href="?{% for k,v in request.GET.items %}{% if k != 'page' %}{{ k }}={{ v }}&{% endif %}{% endfor %}page={{ students.next_page_number }}">›</a>{% endif %}
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const chartData = {{ chart_data_json|safe }};
+Chart.defaults.font.family = 'Inter, sans-serif';
+Chart.defaults.color = '#64748b';
+
+// Common tooltip style
+const tooltipStyle = {
+    backgroundColor: '#0a1f44',
+    titleColor: '#fff',
+    bodyColor: '#fff',
+    padding: 12,
+    cornerRadius: 8,
+    titleFont: { size: 13, weight: '600' },
+    bodyFont: { size: 12 },
+    displayColors: false,
+};
+
+function makePctTooltip(total, suffix) {
+    return {
+        ...tooltipStyle,
+        callbacks: {
+            label: (ctx) => {
+                const v = ctx.parsed.y !== undefined ? ctx.parsed.y : (ctx.parsed.x !== undefined ? ctx.parsed.x : ctx.parsed);
+                const pct = total ? Math.round(v * 100 / total) : 0;
+                return `${ctx.label || ''}: ${v} ${suffix} (${pct}%)`;
+            }
+        }
+    };
+}
+
+// Housing doughnut
+const housingTotal = chartData.housing.data.reduce((a,b)=>a+b, 0);
+new Chart(document.getElementById('housingChart'), {
+    type: 'doughnut',
+    data: {
+        labels: chartData.housing.labels,
+        datasets: [{ data: chartData.housing.data, backgroundColor: chartData.housing.colors, borderWidth: 0, hoverOffset: 10 }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false, cutout: '65%',
+        plugins: {
+            legend: { position: 'bottom', labels: { padding: 14, boxWidth: 14, usePointStyle: true } },
+            tooltip: makePctTooltip(housingTotal, 'ta'),
+        }
+    }
+});
+
+// Payment pie
+const paymentTotal = chartData.payment.data.reduce((a,b)=>a+b, 0);
+new Chart(document.getElementById('paymentChart'), {
+    type: 'pie',
+    data: {
+        labels: chartData.payment.labels,
+        datasets: [{ data: chartData.payment.data, backgroundColor: chartData.payment.colors, borderWidth: 0, hoverOffset: 10 }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+            legend: { position: 'bottom', labels: { padding: 14, boxWidth: 14, usePointStyle: true } },
+            tooltip: makePctTooltip(paymentTotal, 'ta'),
+        }
+    }
+});
+
+// Region horizontal bar
+new Chart(document.getElementById('regionChart'), {
+    type: 'bar',
+    data: {
+        labels: chartData.regions.labels,
+        datasets: [{
+            label: 'Talabalar',
+            data: chartData.regions.data,
+            backgroundColor: '#1a3d75',
+            hoverBackgroundColor: '#d4a017',
+            borderRadius: 6,
+            barThickness: 24,
+        }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        indexAxis: 'y',
+        plugins: {
+            legend: { display: false },
+            tooltip: { ...tooltipStyle, callbacks: { label: (c) => `${c.parsed.x} ta ijaradagi talaba` } },
+        },
+        scales: {
+            x: { grid: { color: '#e2e8f0' }, ticks: { precision: 0 }, beginAtZero: true },
+            y: { grid: { display: false } }
+        }
+    }
+});
+
+// Faculty bar
+new Chart(document.getElementById('facultyChart'), {
+    type: 'bar',
+    data: {
+        labels: chartData.faculties.labels,
+        datasets: [{
+            label: 'Talabalar',
+            data: chartData.faculties.data,
+            backgroundColor: '#d4a017',
+            hoverBackgroundColor: '#b8860b',
+            borderRadius: 6,
+        }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            tooltip: { ...tooltipStyle, callbacks: { label: (c) => `${c.parsed.y} ta talaba` } },
+        },
+        scales: { y: { ticks: { precision: 0 }, beginAtZero: true } }
+    }
+});
+
+// Course doughnut
+const courseTotal = chartData.courses.data.reduce((a,b)=>a+b, 0);
+new Chart(document.getElementById('courseChart'), {
+    type: 'doughnut',
+    data: {
+        labels: chartData.courses.labels,
+        datasets: [{
+            data: chartData.courses.data,
+            backgroundColor: ['#1a3d75', '#244d8e', '#d4a017', '#0891b2', '#16a34a'],
+            borderWidth: 0,
+            hoverOffset: 8,
+        }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false, cutout: '60%',
+        plugins: {
+            legend: { position: 'bottom', labels: { padding: 14, boxWidth: 14, usePointStyle: true } },
+            tooltip: makePctTooltip(courseTotal, 'ta'),
+        }
+    }
+});
+</script>
+{% endblock %}

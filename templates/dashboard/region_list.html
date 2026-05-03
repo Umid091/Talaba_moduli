@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Hududlar va tumanlar{% endblock %}
+{% block breadcrumb %}Bosh sahifa › Boshqaruv › Hududlar{% endblock %}
+
+{% block content %}
+<div class="section-header">
+    <div>
+        <h2>🌍 Hududlar va tumanlar</h2>
+        <div class="subtitle">O'zbekiston bo'yicha geografik bo'lim</div>
+    </div>
+    <div style="display:flex;gap:8px">
+        <a href="{% url 'dashboard:region_create' %}" class="btn btn-primary">➕ Hudud</a>
+        <a href="{% url 'dashboard:district_create' %}" class="btn btn-outline">📌 Tuman</a>
+    </div>
+</div>
+
+<div class="row">
+    {% for r in regions %}
+    <div class="col" style="min-width:320px;flex:0 1 340px">
+        <div class="card">
+            <div class="card-title">
+                <span class="ico">🌍</span>
+                <span style="flex:1">{{ r.name }}</span>
+                <span class="badge badge-primary">{{ r.district_count }}</span>
+            </div>
+            {% if r.districts.all %}
+                <div style="display:flex;flex-wrap:wrap;gap:6px">
+                    {% for d in r.districts.all %}
+                        <span class="badge badge-info" style="padding:5px 10px">📍 {{ d.name }}</span>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p style="color:var(--text-muted);font-size:.85rem">Tumanlar kiritilmagan</p>
+            {% endif %}
+        </div>
+    </div>
+    {% empty %}
+    <div class="col">
+        <div class="card empty"><span class="ico">🌍</span>Hali hududlar yo'q.</div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Mening profilim{% endblock %}
+{% block breadcrumb %}Bosh sahifa › Talaba paneli{% endblock %}
+
+{% block content %}
+<div class="profile-hero">
+    <div class="head">
+        <div class="avatar">{{ profile.user.first_name|slice:":1"|default:profile.user.username|slice:":1"|upper }}</div>
+        <div>
+            <h2>{{ profile.full_name }}</h2>
+            <div class="meta">
+                {{ profile.faculty|default:"Fakultet kiritilmagan" }}
+                {% if profile.group %} · {{ profile.group }}{% endif %}
+                · {{ profile.course }}-kurs
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card" style="border-left:4px solid {% if profile.completion_percent >= 90 %}var(--success){% elif profile.completion_percent >= 60 %}var(--warning){% else %}var(--danger){% endif %}">
+    <div class="progress-label">
+        <span><strong>📋 Profil to'liqligi:</strong>
+            {% if profile.completion_percent >= 90 %}<span style="color:var(--success)">A'lo darajada to'ldirilgan ✓</span>
+            {% elif profile.completion_percent >= 60 %}<span style="color:var(--warning)">Qisman to'ldirilgan</span>
+            {% else %}<span style="color:var(--danger)">Yetarli emas — to'ldirish kerak</span>{% endif %}
+        </span>
+        <strong>{{ profile.completion_percent }}%</strong>
+    </div>
+    <div class="progress {% if profile.completion_percent >= 90 %}success{% elif profile.completion_percent >= 60 %}warning{% else %}danger{% endif %}">
+        <div class="bar" style="width:{{ profile.completion_percent }}%"></div>
+    </div>
+    {% if profile.completion_percent < 100 %}
+    <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+        {% if not profile.user.phone %}<a href="{% url 'accounts:profile' %}" class="btn btn-outline btn-sm">📞 Telefon kiriting</a>{% endif %}
+        {% if not profile.faculty %}<a href="{% url 'students:profile_edit' %}" class="btn btn-outline btn-sm">🎓 Fakultet</a>{% endif %}
+        {% if not profile.group %}<a href="{% url 'students:profile_edit' %}" class="btn btn-outline btn-sm">📚 Guruh</a>{% endif %}
+        {% if not profile.birth_date %}<a href="{% url 'students:profile_edit' %}" class="btn btn-outline btn-sm">🎂 Tug'ilgan sana</a>{% endif %}
+        {% if not profile.passport %}<a href="{% url 'students:profile_edit' %}" class="btn btn-outline btn-sm">🛂 Pasport</a>{% endif %}
+        {% if profile.is_renter and not rental %}<a href="{% url 'students:rental_edit' %}" class="btn btn-outline btn-sm">🏘️ Ijara</a>{% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<!-- Quick stats -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="top"><div class="icon">🏛️</div></div>
+        <div class="value" style="font-size:1.05rem;line-height:1.3">{{ profile.university|truncatechars:30 }}</div>
+        <div class="label">Universitet</div>
+    </div>
+    <div class="stat-card accent">
+        <div class="top"><div class="icon">🎓</div></div>
+        <div class="value" style="font-size:1.05rem">{{ profile.faculty.short_name|default:"—" }}</div>
+        <div class="label">Fakultet</div>
+        <div class="sub">{{ profile.group|default:"Guruh kiritilmagan" }}</div>
+    </div>
+    <div class="stat-card {% if profile.housing_type == 'rent' %}warning{% elif profile.housing_type == 'dormitory' %}info{% else %}success{% endif %}">
+        <div class="top">
+            <div class="icon">
+                {% if profile.housing_type == 'rent' %}🏘️
+                {% elif profile.housing_type == 'dormitory' %}🏨
+                {% else %}🏠{% endif %}
+            </div>
+        </div>
+        <div class="value" style="font-size:1.1rem">{{ profile.get_housing_type_display }}</div>
+        <div class="label">Yashash holati</div>
+    </div>
+    {% if profile.is_renter and rental %}
+    <div class="stat-card {% if rental.is_paid %}success{% else %}danger{% endif %}">
+        <div class="top"><div class="icon">{% if rental.is_paid %}✓{% else %}✕{% endif %}</div></div>
+        <div class="value" style="font-size:1.1rem">{% if rental.is_paid %}To'langan{% else %}Qarzdor{% endif %}</div>
+        <div class="label">To'lov holati</div>
+        <div class="sub">{{ rental.monthly_price|floatformat:0 }} so'm/oy</div>
+    </div>
+    {% endif %}
+</div>
+
+<div class="row">
+    <div class="col">
+        <div class="card">
+            <div class="card-title"><span class="ico">👤</span> Shaxsiy ma'lumotlar</div>
+            <ul class="field-list">
+                <li><span class="key">F.I.Sh:</span><span class="val">{{ profile.full_name }}</span></li>
+                <li><span class="key">Telefon:</span><span class="val">{{ profile.user.phone|default:"—" }}</span></li>
+                <li><span class="key">Email:</span><span class="val">{{ profile.user.email|default:"—" }}</span></li>
+                <li><span class="key">Tug'ilgan sana:</span><span class="val">{{ profile.birth_date|default:"—" }}</span></li>
+                <li><span class="key">Pasport:</span><span class="val">{{ profile.passport|default:"—" }}</span></li>
+                <li><span class="key">Tug'ilgan hudud:</span><span class="val">{{ profile.home_region|default:"—" }}</span></li>
+                <li><span class="key">Tug'ilgan tuman:</span><span class="val">{{ profile.home_district|default:"—" }}</span></li>
+            </ul>
+            <div class="btn-row">
+                <a href="{% url 'students:profile_edit' %}" class="btn btn-primary btn-sm">✏️ Tahrirlash</a>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title"><span class="ico">🎓</span> Ta'lim ma'lumotlari</div>
+            <ul class="field-list">
+                <li><span class="key">Universitet:</span><span class="val">{{ profile.university }}</span></li>
+                <li><span class="key">Fakultet:</span><span class="val">{{ profile.faculty|default:"—" }}</span></li>
+                <li><span class="key">Guruh:</span><span class="val">{{ profile.group|default:"—" }}</span></li>
+                <li><span class="key">Kurs:</span><span class="val">{{ profile.course }}-kurs</span></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="col">
+        {% if profile.is_renter %}
+            {% if rental %}
+            <div class="card">
+                <div class="card-title"><span class="ico">🏘️</span> Ijara ma'lumotlari</div>
+                <ul class="field-list">
+                    <li><span class="key">Hudud:</span><span class="val">{{ rental.region|default:"—" }}</span></li>
+                    <li><span class="key">Tuman:</span><span class="val">{{ rental.district|default:"—" }}</span></li>
+                    <li><span class="key">Manzil:</span><span class="val">{{ rental.address }}</span></li>
+                    <li><span class="key">Oylik narx:</span><span class="val">{{ rental.monthly_price|floatformat:0 }} so'm</span></li>
+                    <li><span class="key">Uy egasi:</span><span class="val">{{ rental.owner_full_name }}</span></li>
+                    <li><span class="key">Telefon:</span><span class="val">{{ rental.owner_phone }}</span></li>
+                    {% if rental.owner_passport %}<li><span class="key">Pasport:</span><span class="val">{{ rental.owner_passport }}</span></li>{% endif %}
+                    <li><span class="key">To'lov:</span>
+                        <span class="val">
+                            {% if rental.is_paid %}<span class="badge badge-success">✓ To'langan</span>
+                            {% else %}<span class="badge badge-danger">✕ Qarzdor</span>{% endif %}
+                        </span>
+                    </li>
+                    {% if rental.last_payment_date %}
+                    <li><span class="key">Oxirgi to'lov:</span><span class="val">{{ rental.last_payment_date }}</span></li>
+                    {% endif %}
+                </ul>
+                <div class="btn-row">
+                    <a href="{% url 'students:rental_edit' %}" class="btn btn-primary btn-sm">✏️ Tahrirlash</a>
+                    <form method="post" action="{% url 'students:toggle_payment' %}" style="display:inline">
+                        {% csrf_token %}
+                        {% if rental.is_paid %}
+                            <button class="btn btn-warning btn-sm">⊘ Qarzdor deb belgilash</button>
+                        {% else %}
+                            <button class="btn btn-success btn-sm">✓ To'langan deb belgilash</button>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+            {% else %}
+            <div class="card" style="border-left:4px solid var(--warning)">
+                <div class="card-title"><span class="ico">📝</span> Ijara ma'lumoti kerak</div>
+                <p style="color:var(--text-muted);margin-bottom:14px">
+                    Yashash holatingiz "<strong>Ijarada</strong>" deb ko'rsatilgan. Iltimos, ijara haqidagi to'liq ma'lumotlarni kiriting — manzil, uy egasi, oylik narx va boshqalar.
+                </p>
+                <a href="{% url 'students:rental_edit' %}" class="btn btn-primary">➕ Ijara ma'lumotini kiritish</a>
+            </div>
+            {% endif %}
+        {% else %}
+            <div class="card">
+                <div class="card-title"><span class="ico">🏠</span> Yashash joyi</div>
+                <p style="color:var(--text-muted)">
+                    Siz <strong>{{ profile.get_housing_type_display|lower }}</strong> yashayapsiz.
+                    {% if profile.housing_type == 'dormitory' %}Yotoqxona ma'lumotlari dekanat tomonidan boshqariladi.
+                    {% else %}O'z uyingizda yashash uchun qo'shimcha ma'lumot kiritish talab etilmaydi.{% endif %}
+                </p>
+                <ul class="field-list" style="margin-top:14px">
+                    <li><span class="key">Tug'ilgan hudud:</span><span class="val">{{ profile.home_region|default:"—" }}</span></li>
+                    <li><span class="key">Tuman:</span><span class="val">{{ profile.home_district|default:"—" }}</span></li>
+                </ul>
+            </div>
+        {% endif %}
+
+        <div class="card">
+            <div class="card-title"><span class="ico">💡</span> Maslahatlar</div>
+            <ul class="field-list">
+                <li>📞 Telefon raqamingizni doimo yangilab turing</li>
+                <li>🏠 Yashash joyingiz o'zgarsa, profilni darhol yangilang</li>
+                <li>💰 To'lovingizni o'z vaqtida belgilang</li>
+                <li>📩 Tyutoringiz bilan aloqada bo'ling</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

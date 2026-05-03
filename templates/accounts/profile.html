@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Mening hisobim{% endblock %}
+{% block breadcrumb %}Bosh sahifa › Mening hisobim{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col" style="max-width:340px">
+        <div class="card" style="text-align:center">
+            <div style="width:120px;height:120px;border-radius:50%;background:linear-gradient(135deg,var(--navy-700),var(--navy-600));color:#fff;display:grid;place-items:center;font-size:2.5rem;font-weight:700;margin:0 auto 14px;overflow:hidden;">
+                {% if user.avatar %}<img src="{{ user.avatar.url }}" style="width:100%;height:100%;object-fit:cover">
+                {% else %}{{ user.first_name|slice:":1"|default:user.username|slice:":1"|upper }}{% endif %}
+            </div>
+            <h3 style="font-size:1.1rem">{{ user.get_full_name|default:user.username }}</h3>
+            <div style="color:var(--text-muted);font-size:.85rem;margin-bottom:8px">@{{ user.username }}</div>
+            <span class="badge badge-primary">{{ user.get_role_display }}</span>
+        </div>
+    </div>
+
+    <div class="col">
+        <div class="card">
+            <div class="card-title"><span class="ico">⚙️</span> Shaxsiy ma'lumotlar</div>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="form-grid">
+                    {% for field in form %}
+                        <div class="form-group" {% if field.name == 'avatar' %}style="grid-column:1/-1"{% endif %}>
+                            <label>{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}<div class="form-error">{{ field.errors|join:" " }}</div>{% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="btn-row">
+                    <button type="submit" class="btn btn-primary">💾 Saqlash</button>
+                    <a href="{% url 'dashboard:home' %}" class="btn btn-secondary">← Bekor qilish</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block page_title %}{{ title }}{% endblock %}
+{% block breadcrumb %}Bosh sahifa › Foydalanuvchilar › {{ title }}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-title"><span class="ico">👤</span> {{ title }}</div>
+    <form method="post" novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+            <div class="alert danger"><span>✕</span><span>{{ form.non_field_errors|join:" " }}</span></div>
+        {% endif %}
+        <div class="form-grid">
+            {% for field in form %}
+                <div class="form-group">
+                    <label>{{ field.label }}{% if field.field.required %} <span style="color:var(--danger)">*</span>{% endif %}</label>
+                    {{ field }}
+                    {% if field.help_text %}<div class="form-help">{{ field.help_text|safe }}</div>{% endif %}
+                    {% if field.errors %}<div class="form-error">{{ field.errors|join:" " }}</div>{% endif %}
+                </div>
+            {% endfor %}
+        </div>
+        <div class="btn-row">
+            <button type="submit" class="btn btn-primary">💾 Saqlash</button>
+            <a href="{% url 'dashboard:users_list' %}" class="btn btn-secondary">← Bekor qilish</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

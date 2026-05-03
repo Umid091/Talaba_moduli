@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block page_title %}{{ student.full_name }}{% endblock %}
+{% block breadcrumb %}Bosh sahifa › Talabalar › {{ student.full_name }}{% endblock %}
+
+{% block content %}
+<div class="profile-hero">
+    <div class="head">
+        <div class="avatar">{{ student.user.first_name|slice:":1"|default:student.user.username|slice:":1"|upper }}</div>
+        <div style="flex:1">
+            <h2>{{ student.full_name }}</h2>
+            <div class="meta">
+                @{{ student.user.username }} ·
+                {{ student.faculty|default:"Fakultet kiritilmagan" }}
+                {% if student.group %} · {{ student.group }}{% endif %}
+                · {{ student.course }}-kurs
+            </div>
+        </div>
+        <div>
+            {% if student.housing_type == 'rent' %}
+                <span class="badge badge-warning" style="font-size:.85rem;padding:6px 14px">🏘️ Ijarada</span>
+            {% elif student.housing_type == 'dormitory' %}
+                <span class="badge badge-info" style="font-size:.85rem;padding:6px 14px">🏨 Yotoqxonada</span>
+            {% else %}
+                <span class="badge badge-success" style="font-size:.85rem;padding:6px 14px">🏠 Uyida</span>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col">
+        <div class="card">
+            <div class="card-title"><span class="ico">👤</span> Shaxsiy ma'lumot</div>
+            <ul class="field-list">
+                <li><span class="key">F.I.Sh:</span><span class="val">{{ student.full_name }}</span></li>
+                <li><span class="key">Login:</span><span class="val">@{{ student.user.username }}</span></li>
+                <li><span class="key">Telefon:</span><span class="val">{{ student.user.phone|default:"—" }}</span></li>
+                <li><span class="key">Email:</span><span class="val">{{ student.user.email|default:"—" }}</span></li>
+                <li><span class="key">Tug'ilgan sana:</span><span class="val">{{ student.birth_date|default:"—" }}</span></li>
+                <li><span class="key">Pasport:</span><span class="val">{{ student.passport|default:"—" }}</span></li>
+                <li><span class="key">Tug'ilgan hudud:</span><span class="val">{{ student.home_region|default:"—" }}</span></li>
+                <li><span class="key">Tug'ilgan tuman:</span><span class="val">{{ student.home_district|default:"—" }}</span></li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <div class="card-title"><span class="ico">🎓</span> Ta'lim</div>
+            <ul class="field-list">
+                <li><span class="key">Universitet:</span><span class="val">{{ student.university }}</span></li>
+                <li><span class="key">Fakultet:</span><span class="val">{{ student.faculty|default:"—" }}</span></li>
+                <li><span class="key">Guruh:</span><span class="val">{{ student.group|default:"—" }}</span></li>
+                <li><span class="key">Kurs:</span><span class="val">{{ student.course }}-kurs</span></li>
+                <li><span class="key">Profil holati:</span>
+                    <span class="val">{% if student.profile_completed %}<span class="badge badge-success">✓ To'liq</span>{% else %}<span class="badge badge-warning">⚠ To'liq emas</span>{% endif %}</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="col">
+        {% if rental %}
+        <div class="card">
+            <div class="card-title"><span class="ico">🏘️</span> Ijara ma'lumoti</div>
+            <ul class="field-list">
+                <li><span class="key">Hudud:</span><span class="val">{{ rental.region|default:"—" }}</span></li>
+                <li><span class="key">Tuman:</span><span class="val">{{ rental.district|default:"—" }}</span></li>
+                <li><span class="key">Manzil:</span><span class="val">{{ rental.address }}</span></li>
+                <li><span class="key">Oylik narx:</span><span class="val">{{ rental.monthly_price|floatformat:0 }} so'm</span></li>
+                <li><span class="key">Uy egasi:</span><span class="val">{{ rental.owner_full_name }}</span></li>
+                <li><span class="key">Uy egasi tel.:</span><span class="val">{{ rental.owner_phone }}</span></li>
+                <li><span class="key">Pasport:</span><span class="val">{{ rental.owner_passport|default:"—" }}</span></li>
+                <li><span class="key">To'lov holati:</span>
+                    <span class="val">{% if rental.is_paid %}<span class="badge badge-success">✓ To'langan</span>{% else %}<span class="badge badge-danger">✕ Qarzdor</span>{% endif %}</span>
+                </li>
+                {% if rental.last_payment_date %}<li><span class="key">Oxirgi to'lov:</span><span class="val">{{ rental.last_payment_date }}</span></li>{% endif %}
+                {% if rental.note %}<li><span class="key">Izoh:</span><span class="val">{{ rental.note }}</span></li>{% endif %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <div class="card">
+            <div class="card-title"><span class="ico">📞</span> Aloqa</div>
+            <div class="quick-links">
+                {% if student.user.phone %}
+                <a href="tel:{{ student.user.phone }}"><span class="ico">📞</span><span>Telefon: {{ student.user.phone }}</span></a>
+                {% endif %}
+                {% if student.user.email %}
+                <a href="mailto:{{ student.user.email }}"><span class="ico">✉️</span><span>{{ student.user.email }}</span></a>
+                {% endif %}
+                {% if rental.owner_phone %}
+                <a href="tel:{{ rental.owner_phone }}"><span class="ico">🏠</span><span>Uy egasi: {{ rental.owner_phone }}</span></a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="btn-row">
+    <a href="javascript:history.back()" class="btn btn-secondary">← Ortga</a>
+    <button onclick="window.print()" class="btn btn-outline">🖨 Chop etish</button>
+</div>
+{% endblock %}

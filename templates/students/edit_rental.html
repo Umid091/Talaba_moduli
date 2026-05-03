@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Ijara ma'lumotlari{% endblock %}
+{% block breadcrumb %}Bosh sahifa › Ijara ma'lumotlari{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-title"><span class="ico">🏘️</span> Ijara haqida ma'lumot</div>
+    <p style="color:var(--text-muted);margin-bottom:18px;font-size:.9rem">
+        Ijara haqidagi ma'lumotlarni to'liq kiriting. Bu ma'lumotlar tyutoringiz va dekanat tomonidan ko'rib chiqiladi.
+    </p>
+    <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="form-grid">
+            {% for field in form %}
+                {% if field.name == 'is_paid' %}
+                    <div class="form-group" style="grid-column:1/-1">
+                        <div class="checkbox-row">
+                            {{ field }}
+                            <label for="{{ field.id_for_label }}">{{ field.label }} (oylik to'lovni amalga oshirgan bo'lsangiz belgilang)</label>
+                        </div>
+                    </div>
+                {% elif field.name == 'note' %}
+                    <div class="form-group" style="grid-column:1/-1">
+                        <label>{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}<div class="form-error">{{ field.errors|join:" " }}</div>{% endif %}
+                    </div>
+                {% else %}
+                    <div class="form-group">
+                        <label>{{ field.label }}{% if field.field.required %} <span style="color:var(--danger)">*</span>{% endif %}</label>
+                        {{ field }}
+                        {% if field.errors %}<div class="form-error">{{ field.errors|join:" " }}</div>{% endif %}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+        <div class="btn-row">
+            <button type="submit" class="btn btn-primary">💾 Saqlash</button>
+            <a href="{% url 'students:dashboard' %}" class="btn btn-secondary">← Bekor qilish</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

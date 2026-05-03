@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}Tizimga kirish — Talaba Moduli{% endblock %}
+
+{% block guest_content %}
+<div class="auth-page">
+    <div class="auth-shell">
+        <!-- Left side: branding -->
+        <div class="auth-side">
+            <div>
+                <div class="seal">TM</div>
+                <h2>Talabalar boshqaruv tizimi</h2>
+                <p class="lead">
+                    Oliy ta'lim muassasasi talabalarining shaxsiy, o'quv va yashashga oid ma'lumotlarini yagona platformada boshqarish tizimi.
+                </p>
+                <ul class="info-list">
+                    <li><span class="dot"></span><span>Talabalar profili va yashash holati</span></li>
+                    <li><span class="dot"></span><span>Tyutorlar nazorati va tahlili</span></li>
+                    <li><span class="dot"></span><span>Ijara va to'lovlar monitoringi</span></li>
+                    <li><span class="dot"></span><span>Hududlar bo'yicha statistika</span></li>
+                </ul>
+            </div>
+            <div class="footnote">
+                © {% now "Y" %} Talaba Moduli<br>
+                Oliy ta'lim muassasalari uchun ishlab chiqilgan
+            </div>
+        </div>
+
+        <!-- Right side: login form -->
+        <div class="auth-form-wrap">
+            <div class="greeting">Hisobga kirish</div>
+            <h1>Xush kelibsiz!</h1>
+            <p class="subtitle">Tizimdan foydalanish uchun ma'lumotlaringizni kiriting</p>
+
+            {% if messages %}
+                <div class="alerts">
+                    {% for message in messages %}
+                        <div class="alert {{ message.tags }}"><span>ℹ</span><span>{{ message }}</span></div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <form method="post" novalidate>
+                {% csrf_token %}
+                {% if form.non_field_errors %}
+                    <div class="alert danger"><span>✕</span><span>Foydalanuvchi nomi yoki parol noto'g'ri.</span></div>
+                {% endif %}
+
+                <div class="form-group">
+                    <label for="{{ form.username.id_for_label }}">Foydalanuvchi nomi</label>
+                    <div class="input-icon-wrap">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                        <input type="text" name="{{ form.username.html_name }}" id="{{ form.username.id_for_label }}" class="form-input" placeholder="Foydalanuvchi nomingiz" autocomplete="username" autofocus required>
+                    </div>
+                    {% if form.username.errors %}<div class="form-error">{{ form.username.errors|join:" " }}</div>{% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.password.id_for_label }}">Parol</label>
+                    <div class="input-icon-wrap">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                        </svg>
+                        <input type="password" name="{{ form.password.html_name }}" id="{{ form.password.id_for_label }}" class="form-input" placeholder="••••••••" autocomplete="current-password" required>
+                    </div>
+                    {% if form.password.errors %}<div class="form-error">{{ form.password.errors|join:" " }}</div>{% endif %}
+                </div>
+
+                <button type="submit" class="btn btn-primary login-btn">
+                    Tizimga kirish
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                        <polyline points="12 5 19 12 12 19"/>
+                    </svg>
+                </button>
+            </form>
+
+            <div class="form-help-link">
+                Login yoki parolni unutdingizmi? <strong>Administratorga murojaat qiling.</strong>
+            </div>
+
+            <div class="auth-bottom">
+                Talaba Moduli v1.1.0
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

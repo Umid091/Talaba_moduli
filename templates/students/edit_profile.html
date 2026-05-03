@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Profilni tahrirlash{% endblock %}
+{% block breadcrumb %}Bosh sahifa › Profilni tahrirlash{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-title"><span class="ico">✏️</span> Talaba profili</div>
+    <p style="color:var(--text-muted);margin-bottom:18px;font-size:.9rem">
+        Iltimos, ma'lumotlaringizni to'liq va aniq kiriting. Yashash turini "<strong>Ijarada</strong>" deb tanlasangiz, keyingi qadamda ijara ma'lumotlarini ham kiritasiz.
+    </p>
+    <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="form-grid">
+            {% for field in form %}
+                <div class="form-group">
+                    <label>{{ field.label }}{% if field.field.required %} <span style="color:var(--danger)">*</span>{% endif %}</label>
+                    {{ field }}
+                    {% if field.help_text %}<div class="form-help">{{ field.help_text }}</div>{% endif %}
+                    {% if field.errors %}<div class="form-error">{{ field.errors|join:" " }}</div>{% endif %}
+                </div>
+            {% endfor %}
+        </div>
+        <div class="btn-row">
+            <button type="submit" class="btn btn-primary">💾 Saqlash</button>
+            <a href="{% url 'students:dashboard' %}" class="btn btn-secondary">← Bekor qilish</a>
+        </div>
+    </form>
+</div>
+
+<div class="alert info">
+    <span>ℹ</span>
+    <div>
+        Yashash turini "<strong>Ijarada</strong>" deb tanlasangiz — keyingi qadamda ijara manzili, oylik narx va uy egasi ma'lumotlarini kiritasiz.
+    </div>
+</div>
+{% endblock %}

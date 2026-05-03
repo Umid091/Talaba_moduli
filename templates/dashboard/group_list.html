@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Guruhlar{% endblock %}
+{% block breadcrumb %}Bosh sahifa › Boshqaruv › Guruhlar{% endblock %}
+
+{% block content %}
+<div class="section-header">
+    <div>
+        <h2>📚 Guruhlar</h2>
+        <div class="subtitle">Akademik guruhlar va kurslar</div>
+    </div>
+    <a href="{% url 'dashboard:group_create' %}" class="btn btn-primary">➕ Yangi guruh</a>
+</div>
+
+<div class="table-wrap">
+    <table class="data-table">
+        <thead>
+            <tr><th style="width:50px">#</th><th>Guruh</th><th>Fakultet</th><th>Kurs</th><th>Talabalar</th><th style="width:120px">Amallar</th></tr>
+        </thead>
+        <tbody>
+            {% for g in groups %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td><strong>{{ g.name }}</strong></td>
+                <td>{{ g.faculty.short_name|default:g.faculty }}</td>
+                <td><span class="badge">{{ g.course }}-kurs</span></td>
+                <td><span class="badge badge-primary">{{ g.student_count }} ta</span></td>
+                <td class="actions">
+                    <a href="{% url 'dashboard:group_edit' g.id %}" class="btn btn-secondary btn-sm">✏️</a>
+                    <a href="{% url 'dashboard:group_delete' g.id %}" class="btn btn-danger btn-sm">🗑</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="empty"><span class="ico">📚</span>Hali guruhlar yo'q.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
